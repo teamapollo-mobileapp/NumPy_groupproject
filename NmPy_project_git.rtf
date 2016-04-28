@@ -1,0 +1,152 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf460
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 from pandas import Series, DataFrame\
+import pandas as pd\
+import datetime as dt\
+%matplotlib inline\
+import matplotlib.pyplot as plt\
+import xlrd\
+\
+\'97\'97\
+from lxml import objectify\
+import pandas as pd\
+df = pd.io.parsers.read_csv("abc.csv")\
+\
+\'97\'97\
+\pard\pardeftab720\partightenfactor0
+
+\f1\fs28 \cf0 \expnd0\expndtw0\kerning0
+Data Cleaning\
+\
+df1 = df.drop(['Product Name','Product Container'], 1)\
+clean_data = df1.dropna()\
+# print cleaned\
+def split_date(df):\
+    df = df.copy() \
+    df['Order_Year'] = pd.DatetimeIndex(df['Order Date']).year\
+    df['Order_Month'] = pd.DatetimeIndex(df['Order Date']).month\
+    return df\
+\
+final_data=split_date(clean_data).drop('Order Date',1)\
+# print final_data\
+\
+\'97\'97\
+Data Visualization\
+\
+# Total and Mean Sales deviation across the years\
+year_range=sorted(final_data.Order_Year.unique())\
+print (year_range)\
+mean_val=final_data.groupby(['Order_Year']).mean().reset_index()\
+mean_sales=mean_val['Sales'].tolist()\
+\
+plt.plot(year_range, mean_sales,label='Mean Sales')\
+ax = plt.axes()\
+ax.get_xaxis().get_major_formatter().set_useOffset(False)\
+plt.xticks(year_range)\
+plt.xlabel('Years')\
+plt.ylabel('Mean Sales')\
+plt.legend()\
+plt.show()\
+\
+count_val=final_data.groupby(['Order_Year']).sum().reset_index()\
+count_sales=count_val['Sales'].tolist()\
+\
+plt.plot(year_range, count_sales,label='Total Sales')\
+ax = plt.axes()\
+ax.get_xaxis().get_major_formatter().set_useOffset(False)\
+plt.xticks(year_range)\
+plt.xlabel('Years')\
+plt.ylabel('Total Sales')\
+plt.legend()\
+plt.show()\
+\
+\'97\'97\
+# Total and Mean Sales deviation across MONTHS\
+month_range=sorted(final_data.Order_Month.unique())\
+print (month_range)\
+mean_val=final_data.groupby(['Order_Month']).mean().reset_index()\
+mean_sales=mean_val['Sales'].tolist()\
+\
+plt.plot(month_range, mean_sales,'o--',label='Mean Sales')\
+ax = plt.axes()\
+#ax.get_xaxis().get_major_formatter().set_useOffset(False)\
+plt.xticks(month_range)\
+plt.xlabel('Months')\
+plt.ylabel('Mean Sales')\
+plt.legend()\
+plt.show()\
+\
+count_val=final_data.groupby(['Order_Month']).sum().reset_index()\
+count_sales=count_val['Sales'].tolist()\
+\
+plt.plot(month_range, count_sales,'v:',label='Total Sales')\
+ax = plt.axes()\
+#ax.get_xaxis().get_major_formatter().set_useOffset(False)\
+plt.xticks(month_range)\
+plt.xlabel('Months')\
+plt.ylabel('Total Sales')\
+ax.grid()\
+plt.legend()\
+plt.show()\
+\'97\'97\
+### Data Visualization\
+# Province wise Sales\
+provinces=sorted(final_data.Province.unique())\
+print provinces\
+province_sales=final_data.groupby(['Province']).sum().reset_index()\
+province_sales_list=province_sales['Sales'].tolist()\
+colors = ['b', 'g', 'r', 'c', 'm', 'y','#7A68A6','#CC79A7','#cbcbcb','#C4AD66','#bc82bd','#FFC400','#4878CF']\
+explode = (0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.4, 0.1, 0.1, 0.1, 0.1)\
+\
+# autopct the %.1f is Python formating and %% used to show as percent\
+plt.pie(province_sales_list, colors=colors, labels=provinces, autopct='%.1f%%',explode=explode, counterclock=False, shadow=True)\
+plt.title('Superstore Sales')\
+\
+plt.show()\
+\'97\'97\
+\
+Linear Regression\
+\
+from pandas.stats.api import ols\
+\
+\
+result =  ols(y=final_data['Sales'], x=final_data[['Profit','Discount','Unit Price','Order Quantity','Shipping Cost','Product Base Margin','Order_Month','Order_Year']])\
+result\
+# import statsmodels.formula.api as sm\
+# result = sm.ols(formula="(Sales) ~ (Profit) + (Discount)+(Order_Month)+(Order_Year)", data=final_data).fit()\
+# print result.summary()\
+\'97\'97\
+import sklearn\
+from sklearn.linear_model import LinearRegression\
+lr=LinearRegression()\
+X=final_data[['Profit','Discount','Unit Price','Order Quantity','Shipping Cost','Product Base Margin','Order_Month','Order_Year']]\
+# print X\
+lr.fit(X, final_data.Sales)\
+print pd.DataFrame(zip(X.columns,lr.coef_),columns=['Features','Estimated_coefficients'])\
+plt.scatter(final_data.Discount,final_data.Sales)\
+plt.xlabel('Discount')\
+plt.ylabel('Sales')\
+plt.title('Covariance between Discount and Sales')\
+plt.show()\
+\
+\'97\'97\
+Predicting Future Sales\
+\
+print lr.predict(X)[0:5]\
+plt.scatter(final_data.Sales,lr.predict(X))\
+plt.xlabel('Actual Sales')\
+plt.ylabel('Predicted Sales')\
+plt.title('Actual Sales Vs Predicted Sales')\
+plt.show()\
+\'97\'97\
+\
+Calculating RMSE\
+\
+import numpy as np\
+MSE=np.mean((final_data.Sales-lr.predict(X))**2)\
+print MSE\
+}
